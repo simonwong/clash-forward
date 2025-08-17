@@ -1,41 +1,26 @@
 import { Hono } from 'hono';
 import { handle } from 'hono/vercel';
+import { converter } from '@/core/converter';
 export const dynamic = 'force-dynamic';
 
 const app = new Hono().basePath('/clash');
 
-app.get('/hello', (c) => {
-  return c.json({
-    message: 'Hello from Hono on Vercel!',
-  });
-});
-
 app.get('/:base64Url', async (c) => {
   const base64Url = c.req.param('base64Url');
+  const res = await converter.convert(base64Url);
 
-  // 解码 base64 URL
-  const decodedUrl = atob(base64Url);
-
-  // 验证是否为有效的 URL
-  new URL(decodedUrl);
-
-  const response = await fetch(decodedUrl, {
-    headers: {
-      'User-Agent': 'clash-verge/v2.3.2',
-      Accept: '*/*',
-    },
-  });
-  if (!response.ok) {
-    throw new Error(
-      `获取订阅数据失败: ${response.status} ${response.statusText}`
-    );
+  if (res.success) {
+    // biome-ignore lint/style/noMagicNumbers: 200
+    return c.newResponse(res.data!, 200, {
+      'Cache-Control': 'no-cache, no-store, must-revalidate',
+      Pragma: 'no-cache',
+      Expires: '0',
+      'Content-Type': 'text/yaml; charset=UTF-8',
+      'Content-Disposition': 'attachment; filename="clash-config.yaml"',
+      ...res.headers,
+    });
   }
-
-  const data = await response.text();
-
-  return c.json({
-    message: data,
-  });
+  return c.text(res.message ?? '');
 });
 
 export const GET = handle(app);
