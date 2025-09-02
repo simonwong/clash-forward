@@ -27,9 +27,8 @@ export default function Home() {
       alert('请输入有效的 URL 格式');
       return;
     }
-
     // 对订阅链接进行 Base64 编码
-    const encoded = btoa(subscriptionUrl);
+    const encoded = btoa(encodeURIComponent(subscriptionUrl));
     const currentDomain =
       typeof window !== 'undefined' ? window.location.origin : '';
     const converted = `${currentDomain}/clash/${encoded}`;

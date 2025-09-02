@@ -15,8 +15,7 @@ import type { ClashConfig, ParsedUrl } from './types';
 export function parseUrl(base64Url: string): ParsedUrl {
   try {
     // 解码 base64 URL
-    const decodedUrl = atob(base64Url);
-
+    const decodedUrl = decodeURIComponent(atob(base64Url));
     // 验证是否为有效的 URL
     new URL(decodedUrl);
 
